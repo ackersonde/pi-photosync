@@ -11,6 +11,9 @@ jobs:
       SSH_CXN: ${{ secrets.CTX_IPV6_MASTER_HOME }}
       CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
       CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
+      SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
+      SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
+      SYNCTHING_CERT: ${{ secrets.SYNCTHING_CERT }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -24,7 +27,7 @@ jobs:
           go build do.go
           cd ../
 
-          envsubst '${{secrets.SYNCTHING_CONFIG}} ${{secrets.SYNCTHING_KEY}} ${{secrets.SYNCTHING_CERT}}' < setup_photosync.sh > install_photosync.sh
+          envsubst '${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < setup_photosync.sh > install_photosync.sh
 
           cat <<DEPLOY_EOF >deploy-photosync.sh
           #!/usr/bin/bash
