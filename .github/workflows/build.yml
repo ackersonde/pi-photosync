@@ -1,0 +1,52 @@
+name: Deploy Traefik, Photoprism and Syncthing to PI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    env:
+      SSH_CXN: ${{ secrets.CTX_IPV6_MASTER_HOME }}
+      CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
+      CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+      - name: Build and deploy application
+        run: |
+          git clone https://github.com/ackersonde/digitaloceans.git
+          cd digitaloceans
+          go mod tidy
+          go build do.go
+          cd ../
+
+          cat <<DEPLOY_EOF >deploy-photosync.sh
+          #!/usr/bin/bash
+          ssh ubuntu@$SSH_CXN '\
+            touch happy.txt'
+          DEPLOY_EOF
+          chmod u+x deploy-photosync.sh
+
+          mkdir ~/.ssh
+          cat <<EOF >~/.ssh/id_rsa
+          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
+          EOF
+          chmod 400 ~/.ssh/id_rsa
+
+          public_ip_address=$(curl -s https://checkip.amazonaws.com)
+          ./digitaloceans/do -fn=firewallSSH -allow=true -ip=$public_ip_address -tag=traefik
+
+          scp -o StrictHostKeyChecking=no -r deploy-photosync.sh root@ackerson.de:~/
+          ssh root@ackerson.de ./deploy-photosync.sh
+          ssh root@ackerson.de rm -Rf deploy-photosync.sh
+
+          rm -Rf .ssh/ deploy-photosync.sh
+          ./digitaloceans/do -fn=firewallSSH -allow=false -ip=$public_ip_address
+
+          curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
+            -d text="<https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID | $GITHUB_REPOSITORY @ $GITHUB_RUN_ID>" \
+            https://slack.com/api/chat.postMessage
