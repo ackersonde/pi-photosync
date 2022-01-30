@@ -26,7 +26,7 @@ jobs:
 
           cat <<DEPLOY_EOF >deploy-photosync.sh
           #!/usr/bin/bash
-          ssh ubuntu@$SSH_CXN '\
+          ssh -o StrictHostKeyChecking=no ubuntu@$SSH_CXN '\
             touch happy.txt'
           DEPLOY_EOF
           chmod u+x deploy-photosync.sh
@@ -40,7 +40,7 @@ jobs:
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           ./digitaloceans/do -fn=firewallSSH -allow=true -ip=$public_ip_address -tag=traefik
 
-          scp -o StrictHostKeyChecking=no -r deploy-photosync.sh root@ackerson.de:~/
+          scp -o StrictHostKeyChecking=no deploy-photosync.sh root@ackerson.de:~/
           ssh root@ackerson.de ./deploy-photosync.sh
           ssh root@ackerson.de rm -Rf deploy-photosync.sh
 
