@@ -34,11 +34,14 @@ iptables-persistent iptables-persistent/autosave_v6 boolean true
 unattended-upgrades unattended-upgrades/enable_auto_updates boolean true
 EOF
 
+iptables -D INPUT -s 192.168.178.0/24 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT || true
 iptables -A INPUT -s 192.168.178.0/24 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 #ip6tables -A INPUT -p tcp -s <Public DSL IPv6 Prefix>  --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 # allow docker containers to talk to the internet
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
+ip6tables -D INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT || true
 ip6tables -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+ip6tables -D INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT || true
 ip6tables -A INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT
 
 dpkg-reconfigure -f noninteractive unattended-upgrades

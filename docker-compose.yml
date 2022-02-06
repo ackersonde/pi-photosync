@@ -44,7 +44,7 @@ services:
       - "2342:2342" # HTTP port (host:container)
     environment:
       PHOTOPRISM_ADMIN_PASSWORD: "insecure"          # PLEASE CHANGE: Your initial admin password (min 4 characters)
-      PHOTOPRISM_SITE_URL: "http://photos.ackerson.de:2342/"  # Public server URL incl http:// or https:// and /path, :port is optional
+      PHOTOPRISM_SITE_URL: "https://photos.ackerson.de/"  # Public server URL incl http:// or https:// and /path, :port is optional
       PHOTOPRISM_ORIGINALS_LIMIT: 5000               # File size limit for originals in MB (increase for high-res video)
       PHOTOPRISM_HTTP_COMPRESSION: "none"            # Improves transfer speed and bandwidth utilization (none or gzip)
       PHOTOPRISM_WORKERS: 2                          # Limits the number of indexing workers to reduce system load
@@ -94,7 +94,7 @@ services:
       - "traefik.http.routers.photoprism.tls.certResolver=letsencrypt"
       - "traefik.http.routers.photoprism.tls.domains=photos.ackerson.de"
       - "traefik.http.routers.photoprism.rule=Host(`photos.ackerson.de`)"
-      - "traefik.http.routers.photoprism.middlewares=secHeaders@file,api_auth,http-ratelimit"
+      - "traefik.http.routers.photoprism.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
       - "traefik.http.routers.photoprism.service=photoprism-svc"
       - "traefik.http.services.photoprism-svc.loadbalancer.server.port=2342"
 
@@ -130,7 +130,7 @@ services:
       - "traefik.http.routers.syncthing.tls.certResolver=letsencrypt"
       - "traefik.http.routers.syncthing.tls.domains=homesync.ackerson.de"
       - "traefik.http.routers.syncthing.rule=Host(`homesync.ackerson.de`)"
-      - "traefik.http.routers.syncthing.middlewares=secHeaders@file,api_auth,http-ratelimit"
+      - "traefik.http.routers.syncthing.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
       - "traefik.http.routers.syncthing.service=syncthing-svc"
       - "traefik.http.services.syncthing-svc.loadbalancer.server.port=8384"
     ports:
@@ -164,7 +164,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.middlewares.api_auth.basicauth.usersfile=/usersFile"
       - "traefik.http.routers.api.entrypoints=web,secure"
-      - "traefik.http.routers.api.middlewares=secHeaders@file,api_auth,http-ratelimit"
+      - "traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
       - "traefik.http.routers.api.rule=Host(`ht.ackerson.de`)"
       - "traefik.http.routers.api.service=api@internal"
       - "traefik.http.routers.api.tls.certResolver=letsencrypt"
