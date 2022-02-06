@@ -14,6 +14,7 @@ jobs:
       SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
       SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
       SYNCTHING_CERT: ${{ secrets.SYNCTHING_CERT }}
+      HTTP_USERSFILE: ${{ secrets.HTTP_USERSFILE }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -27,14 +28,16 @@ jobs:
           go build do.go
           cd ../
 
-          envsubst '${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < setup_photosync.sh > install_photosync.sh
+          envsubst '${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT} ${HTTP_USERSFILE}' < setup_photosync.sh > install_photosync.sh
 
           cat <<DEPLOY_EOF >deploy-photosync.sh
           #!/usr/bin/bash
-          ssh -o StrictHostKeyChecking=no ubuntu@$SSH_CXN '\
-            touch happy.txt'
-          scp install_photosync.sh ubuntu@$SSH_CXN:~/
-          ssh ubuntu@$SSH_CXN sudo ./fritzBoxShell.sh # TODO: ./install_photosync.sh
+          scp -o StrictHostKeyChecking=no install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml ubuntu@$SSH_CXN:~/
+          ssh ubuntu@$SSH_CXN '\
+            curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/digitaloceans/main/scripts/dynamic_conf.yml
+            chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh && \
+            cd photoprism && docker-compose up -d
+          '
           DEPLOY_EOF
           chmod u+x deploy-photosync.sh
 

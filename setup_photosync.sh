@@ -1,5 +1,14 @@
 #!/bin/bash
+
+# Setup photoprism
+mkdir -p /home/ubuntu/photoprism
+mv backup_photos.sh import_photos.sh docker-compose.yml /home/ubuntu/photoprism/
+
+# Setup Traefik for pi4
 TRAEFIK_HOME=/home/ubuntu/traefik
+cat <<EOF > $TRAEFIK_HOME/usersFile
+$HTTP_USERSFILE
+EOF
 
 # Setup Syncthing config
 mkdir -p /home/ubuntu/syncthing/config /home/ubuntu/syncthing/Camera
@@ -26,18 +35,20 @@ unattended-upgrades unattended-upgrades/enable_auto_updates boolean true
 EOF
 
 iptables -A INPUT -s 192.168.178.0/24 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-#ip6tables -A INPUT -p tcp -s 2a02:810d:80:3650::/62  --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+#ip6tables -A INPUT -p tcp -s <Public DSL IPv6 Prefix>  --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 # allow docker containers to talk to the internet
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
+ip6tables -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+ip6tables -A INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT
 
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 apt-get update
-apt-get install docker-ce docker-ce-cli containerd.io iptables-persistent
+apt-get -y install docker-ce docker-ce-cli containerd.io iptables-persistent
 
 systemctl start docker
 systemctl enable docker
