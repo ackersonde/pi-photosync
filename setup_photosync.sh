@@ -15,7 +15,7 @@ mkdir -p /home/ubuntu/syncthing/config /home/ubuntu/syncthing/Camera
 chown -Rf ubuntu:ubuntu /home/ubuntu/syncthing
 echo ".trashed-*" > /home/ubuntu/syncthing/Camera/.stignore
 chmod 600 /home/ubuntu/syncthing/Camera/.stignore
-echo -n "$SYNCTHING_CONFIG" | base64 -d | tee -a /home/ubuntu/syncthing/config/config.xml
+echo -n "$SYNCTHING_CONFIG" | base64 -d | tee -a /home/ubuntu/syncthing/config/config.xml >/dev/null
 chmod 600 /home/ubuntu/syncthing/config/config.xml
 cat <<EOF > /home/ubuntu/syncthing/config/key.pem
 $SYNCTHING_KEY
