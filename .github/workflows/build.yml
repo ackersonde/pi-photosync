@@ -35,7 +35,8 @@ jobs:
           scp -o StrictHostKeyChecking=no install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml ubuntu@$SSH_CXN:~/
           ssh ubuntu@$SSH_CXN '\
             curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/digitaloceans/main/scripts/dynamic_conf.yml
-            chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh; \
+            chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh'
+          ssh ubuntu@$SSH_CXN '\
             docker-compose -f ./photoprism/docker-compose.yml down && \
             docker-compose -f ./photoprism/docker-compose.yml up -d
           '
