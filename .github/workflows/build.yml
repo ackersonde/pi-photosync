@@ -36,7 +36,8 @@ jobs:
           ssh ubuntu@$SSH_CXN '\
             curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/digitaloceans/main/scripts/dynamic_conf.yml
             chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh && \
-            cd photoprism && docker-compose up -d
+            docker-compose -f ./photoprism/docker-compose.yml down && \
+            docker-compose -f ./photoprism/docker-compose.yml up -d
           '
           DEPLOY_EOF
           chmod u+x deploy-photosync.sh
@@ -50,11 +51,11 @@ jobs:
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           ./digitaloceans/do -fn=firewallSSH -allow=true -ip=$public_ip_address -tag=traefik
 
-          scp -o StrictHostKeyChecking=no deploy-photosync.sh install_photosync.sh root@ackerson.de:~/
+          scp -o StrictHostKeyChecking=no deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml root@ackerson.de:~/
           ssh root@ackerson.de ./deploy-photosync.sh
-          ssh root@ackerson.de rm -Rf deploy-photosync.sh install_photosync.sh
+          ssh root@ackerson.de rm -Rf deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml
 
-          rm -Rf .ssh/ deploy-photosync.sh install_photosync.sh
+          rm -Rf .ssh/ deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml
           ./digitaloceans/do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
           curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
