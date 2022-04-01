@@ -37,6 +37,7 @@ jobs:
             curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/digitaloceans/main/scripts/dynamic_conf.yml
             chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh && \
             docker-compose -f ./photoprism/docker-compose.yml down && \
+            docker-compose -f ./photoprism/docker-compose.yml pull && \
             docker-compose -f ./photoprism/docker-compose.yml up -d
           '
           DEPLOY_EOF
