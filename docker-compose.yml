@@ -98,7 +98,14 @@ services:
       - "traefik.http.routers.photoprism.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
       - "traefik.http.routers.photoprism.service=photoprism-svc"
       - "traefik.http.services.photoprism-svc.loadbalancer.server.port=2342"
-
+      - "traefik.http.routers.public-album.tls.certResolver=letsencrypt"
+      - "traefik.http.routers.public-album.tls.domains=albums.ackerson.de"
+      - "traefik.http.routers.public-album.rule=Host(`albums.ackerson.de`)"
+      - "traefik.http.routers.public-album.middlewares=add-s,auth-header"
+      - "traefik.http.routers.public-album.service=public-album-svc"
+      - "traefik.http.services.public-album-svc.loadbalancer.servers.url=https://photos.ackerson.de/"
+      - "traefik.http.middlewares.add-s.addprefix.prefix=/s"
+      - "traefik.http.middlewares.auth-header.headers.customrequestheaders.Authorization=Basic $ORG_PHOTOS_BASIC_AUTH_TOKEN"
   ## Database Server (recommended)
   ## see https://docs.photoprism.app/getting-started/faq/#should-i-use-sqlite-mariadb-or-mysql
   mariadb:
@@ -151,7 +158,7 @@ services:
       - "~/traefik/dynamic_conf.yml:/dynamic_conf.yml"
       - "~/traefik/usersFile:/usersFile"
     command:
-      - "--api.dashboard=false"
+      - "--api.dashboard=true"
       - "--accesslog.filepath=/var/log/traefik/access.log"
       - "--log.filepath=/var/log/traefik/traefik.log"
       - "--log.level=WARN"
@@ -165,7 +172,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.middlewares.api_auth.basicauth.usersfile=/usersFile"
       - "traefik.http.routers.api.entrypoints=web,secure"
-      - "traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
+      - "traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file"
       - "traefik.http.routers.api.rule=Host(`ht.ackerson.de`)"
       - "traefik.http.routers.api.service=api@internal"
       - "traefik.http.routers.api.tls.certResolver=letsencrypt"
