@@ -98,14 +98,19 @@ services:
       - "traefik.http.routers.photoprism.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
       - "traefik.http.routers.photoprism.service=photoprism-svc"
       - "traefik.http.services.photoprism-svc.loadbalancer.server.port=2342"
+
+  ## Empty container for publicly viewing photo albums (e.g. sharing w/ family)
+  albumproxy:
+    image: traefik/whoami
+    container_name: albumproxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.public-album.entrypoints=web,secure"
       - "traefik.http.routers.public-album.tls.certResolver=letsencrypt"
       - "traefik.http.routers.public-album.tls.domains=albums.ackerson.de"
-      - "traefik.http.routers.public-album.rule=Host(`albums.ackerson.de`)"
-      - "traefik.http.routers.public-album.middlewares=add-s,auth-header"
-      - "traefik.http.routers.public-album.service=public-album-svc"
-      - "traefik.http.services.public-album-svc.loadbalancer.servers.url=https://photos.ackerson.de/"
-      - "traefik.http.middlewares.add-s.addprefix.prefix=/s"
-      - "traefik.http.middlewares.auth-header.headers.customrequestheaders.Authorization=Basic $ORG_PHOTOS_BASIC_AUTH_TOKEN"
+      - "traefik.http.routers.public-album.rule=Host(`albums.ackerson.de`) && (Path(`/favicon`) || Path(`/manifest.json`) || Path(`/api/v1/ws`) || Path(`/api/v1/photos`) || Path(`/api/v1/photos/view`) || Path(`/api/v1/session`) || PathPrefix(`/s`) || PathPrefix(`/api/v1/albums`) || PathPrefix(`/api/v1/t`))"
+      - "traefik.http.routers.public-album.service=photoprism-svc"
+
   ## Database Server (recommended)
   ## see https://docs.photoprism.app/getting-started/faq/#should-i-use-sqlite-mariadb-or-mysql
   mariadb:
