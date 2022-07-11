@@ -7,7 +7,7 @@ mv backup_photos.sh import_photos.sh docker-compose.yml /home/ubuntu/photoprism/
 # Setup Traefik for pi4
 TRAEFIK_HOME=/home/ubuntu/traefik
 cat <<EOF > $TRAEFIK_HOME/usersFile
-$HTTP_USERSFILE
+$(echo $HTTP_USERSFILE_B64 | base64 -d)
 EOF
 
 # Setup Syncthing config

@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -23,11 +23,11 @@ jobs:
           go build do.go
           cd ../
 
-          export SYNCTHING_CONFIG=$(echo ${{ secrets.ORG_HOME_SYNCTHING_CONFIG }} | base64 -d)
+          export SYNCTHING_CONFIG_B64=${{ secrets.ORG_HOME_SYNCTHING_CONFIG }}
           export SYNCTHING_KEY=$(echo ${{ secrets.ORG_HOME_SYNCTHING_KEY }} | base64 -d)
           export SYNCTHING_CERT=$(echo ${{ secrets.ORG_HOME_SYNCTHING_CERT }} | base64 -d)
-          export HTTP_USERSFILE=$(echo ${{ secrets.ORG_HOME_SYNCTHING_BASIC_AUTH_USERSFILE }} | base64 -d)
-          envsubst '${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT} ${HTTP_USERSFILE}' < setup_photosync.sh > install_photosync.sh
+          export HTTP_USERSFILE_B64=${{ secrets.ORG_HOME_SYNCTHING_BASIC_AUTH_USERSFILE }}
+          envsubst '${SYNCTHING_CONFIG_B64} ${SYNCTHING_KEY} ${SYNCTHING_CERT} ${HTTP_USERSFILE_B64}' < setup_photosync.sh > install_photosync.sh
 
           export SSH_CXN=$(echo ${{ secrets.ORG_MASTER_HOST }} | base64 -d)
           cat <<DEPLOY_EOF >deploy-photosync.sh
