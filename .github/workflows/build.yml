@@ -8,13 +8,7 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     env:
-      SSH_CXN: ${{ secrets.CTX_IPV6_MASTER_HOME }}
-      CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
-      CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
-      SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
-      SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
-      SYNCTHING_CERT: ${{ secrets.SYNCTHING_CERT }}
-      HTTP_USERSFILE: ${{ secrets.HTTP_USERSFILE }}
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -22,14 +16,22 @@ jobs:
           go-version: '1.18'
       - name: Build and deploy application
         run: |
+          export CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN=$(echo ${{ secrets.ORG_DIGITALOCEAN_DROPLET_PROXY_TOKEN }} | base64 -d)
+          export CTX_DIGITALOCEAN_FIREWALL=$(echo ${{ secrets.ORG_DIGITALOCEAN_FIREWALL }} | base64 -d)
+
           git clone https://github.com/ackersonde/digitaloceans.git
           cd digitaloceans
           go mod tidy
           go build do.go
           cd ../
 
+          export SYNCTHING_CONFIG=$(echo ${{ secrets.ORG_HOME_SYNCTHING_CONFIG }} | base64 -d)
+          export SYNCTHING_KEY=$(echo ${{ secrets.ORG_HOME_SYNCTHING_KEY }} | base64 -d)
+          export SYNCTHING_CERT=$(echo ${{ secrets.ORG_HOME_SYNCTHING_CERT }} | base64 -d)
+          export HTTP_USERSFILE=$(echo ${{ secrets.ORG_HOME_SYNCTHING_BASIC_AUTH_USERSFILE }} | base64 -d)
           envsubst '${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT} ${HTTP_USERSFILE}' < setup_photosync.sh > install_photosync.sh
 
+          export SSH_CXN=$(echo ${{ secrets.ORG_MASTER_HOST }} | base64 -d)
           cat <<DEPLOY_EOF >deploy-photosync.sh
           #!/usr/bin/bash
           scp -o StrictHostKeyChecking=no install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml ubuntu@$SSH_CXN:~/
@@ -45,7 +47,7 @@ jobs:
 
           mkdir ~/.ssh
           cat <<EOF >~/.ssh/id_rsa
-          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
+          $(echo ${{ secrets.ORG_DIGITALOCEAN_SSH_PRIVKEY }} | base64 -d)
           EOF
           chmod 400 ~/.ssh/id_rsa
 
@@ -59,6 +61,7 @@ jobs:
           rm -Rf .ssh/ deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml
           ./digitaloceans/do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
-          curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
+          export SLACK_NOTIFY_TOKEN=$(echo ${{ secrets.ORG_SLACK_NOTIFICATIONS_TOKEN }} | base64 -d)
+          curl -s -o /dev/null -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C092UE0H4 \
             -d text="<https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|$GITHUB_REPOSITORY @ $GITHUB_RUN_ID>" \
             https://slack.com/api/chat.postMessage

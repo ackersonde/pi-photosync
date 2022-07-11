@@ -109,6 +109,7 @@ services:
       - "traefik.http.routers.public-album.tls.certResolver=letsencrypt"
       - "traefik.http.routers.public-album.tls.domains=albums.ackerson.de"
       - "traefik.http.routers.public-album.rule=Host(`albums.ackerson.de`) && (Path(`/favicon`) || Path(`/manifest.json`) || Path(`/api/v1/ws`) || Path(`/api/v1/photos`) || Path(`/api/v1/photos/view`) || Path(`/api/v1/session`) || PathPrefix(`/s`) || PathPrefix(`/api/v1/albums`) || PathPrefix(`/api/v1/t`))"
+      - "traefik.http.routers.public-album.middlewares=http-ratelimit@file,secHeaders@file"
       - "traefik.http.routers.public-album.service=photoprism-svc"
 
   ## Database Server (recommended)
