@@ -44,9 +44,7 @@ jobs:
           chmod u+x deploy-photosync.sh
 
           mkdir ~/.ssh
-          cat <<EOF >~/.ssh/id_rsa
-          $(echo ${{ secrets.ORG_DIGITALOCEAN_SSH_PRIVKEY }} | base64 -d)
-          EOF
+          echo "${{ secrets.ORG_DIGITALOCEAN_SSH_PRIVKEY }}" | tee ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
