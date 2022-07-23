@@ -92,7 +92,6 @@ services:
       - "./storage:/photoprism/storage" # *writable* storage folder for cache, database, and sidecar files (never remove)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.photoprism.tls.certResolver=letsencrypt"
       - "traefik.http.routers.photoprism.tls.domains=photos.ackerson.de"
       - "traefik.http.routers.photoprism.rule=Host(`photos.ackerson.de`)"
       - "traefik.http.routers.photoprism.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
@@ -106,7 +105,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.public-album.entrypoints=web,secure"
-      - "traefik.http.routers.public-album.tls.certResolver=letsencrypt"
       - "traefik.http.routers.public-album.tls.domains=albums.ackerson.de"
       - "traefik.http.routers.public-album.rule=Host(`albums.ackerson.de`) && (Path(`/favicon`) || Path(`/manifest.json`) || Path(`/api/v1/ws`) || Path(`/api/v1/photos`) || Path(`/api/v1/photos/view`) || Path(`/api/v1/session`) || PathPrefix(`/s`) || PathPrefix(`/api/v1/albums`) || PathPrefix(`/api/v1/t`))"
       - "traefik.http.routers.public-album.middlewares=http-ratelimit@file,secHeaders@file"
@@ -141,7 +139,6 @@ services:
       - "/home/ubuntu/syncthing:/var/syncthing"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.syncthing.tls.certResolver=letsencrypt"
       - "traefik.http.routers.syncthing.tls.domains=homesync.ackerson.de"
       - "traefik.http.routers.syncthing.rule=Host(`homesync.ackerson.de`)"
       - "traefik.http.routers.syncthing.middlewares=http-ratelimit@file,secHeaders@file,api_auth"
