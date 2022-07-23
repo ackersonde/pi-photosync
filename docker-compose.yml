@@ -160,7 +160,8 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "~/traefik/logs:/var/log/traefik/"
-      - "~/traefik/acme.json:/acme.json:ro"
+      - "~/traefik/dump/certs:/certs/"
+      - "~/traefik/dump/private:/keys/"
       - "~/traefik/dynamic_conf.yml:/dynamic_conf.yml"
       - "~/traefik/usersFile:/usersFile"
     command:
@@ -174,8 +175,6 @@ services:
       - "--entrypoints.secure.address=:443"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=172.19.0.1/24,fd00::/80"
       - "--entryPoints.secure.forwardedHeaders.trustedIPs=172.19.0.1/24,fd00::/80"
-      - "--certificatesResolvers.letsencrypt.acme.email=dan@ackerson.de"
-      - "--certificatesResolvers.letsencrypt.acme.storage=acme.json"
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.api_auth.basicauth.usersfile=/usersFile"
@@ -183,7 +182,6 @@ services:
       - "traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file"
       - "traefik.http.routers.api.rule=Host(`ht.ackerson.de`)"
       - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.tls.certResolver=letsencrypt"
       - "traefik.http.routers.api.tls.domains=ht.ackerson.de"
       - "traefik.http.routers.https-redirect.rule=HostRegexp(`{any:.*}`)"
       - "traefik.http.routers.https-redirect.middlewares=https-redirect@docker"

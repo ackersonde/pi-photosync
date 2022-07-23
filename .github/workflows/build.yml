@@ -14,13 +14,12 @@ jobs:
           go-version: '1.18'
       - name: Build and deploy application
         run: |
-          export CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN=$(echo ${{ secrets.ORG_DIGITALOCEAN_DROPLET_PROXY_TOKEN }} | base64 -d)
-          export CTX_DIGITALOCEAN_FIREWALL=$(echo ${{ secrets.ORG_DIGITALOCEAN_FIREWALL }} | base64 -d)
+          export HETZNER_API_TOKEN=$(echo ${{ secrets.ORG_HETZNER_CLOUD_API_TOKEN }} | base64 -d)
 
-          git clone https://github.com/ackersonde/digitaloceans.git
-          cd digitaloceans
+          git clone https://github.com/ackersonde/hetzner_home.git
+          cd hetzner_home
           go mod tidy
-          go build do.go
+          go build hetzner.go
           cd ../
 
           export SYNCTHING_CONFIG_B64=${{ secrets.ORG_HOME_SYNCTHING_CONFIG }}
@@ -34,7 +33,7 @@ jobs:
           #!/usr/bin/bash
           scp -o StrictHostKeyChecking=no install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml ubuntu@$SSH_CXN:~/
           ssh ubuntu@$SSH_CXN '\
-            curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/digitaloceans/main/scripts/dynamic_conf.yml
+            curl -o traefik/dynamic_conf.yml https://raw.githubusercontent.com/ackersonde/hetzner_home/main/scripts/dynamic_conf.yml
             chmod a+x ./install_photosync.sh && sudo ./install_photosync.sh && \
             docker compose -f ./photoprism/docker-compose.yml down && \
             docker compose -f ./photoprism/docker-compose.yml pull && \
@@ -44,18 +43,18 @@ jobs:
           chmod u+x deploy-photosync.sh
 
           mkdir ~/.ssh
-          echo "${{ secrets.ORG_DIGITALOCEAN_SSH_PRIVKEY }}" | tee ~/.ssh/id_rsa
+          echo "${{ secrets.HETZNER_SSH_PRIVKEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
-          ./digitaloceans/do -fn=firewallSSH -allow=true -ip=$public_ip_address -tag=traefik
+          ./hetzner_home/hetzner -fn=firewallSSH -tag=homepage -ip=$public_ip_address
 
           scp -o StrictHostKeyChecking=no deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml root@ackerson.de:~/
           ssh root@ackerson.de ./deploy-photosync.sh
           ssh root@ackerson.de rm -Rf deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml
 
           rm -Rf .ssh/ deploy-photosync.sh install_photosync.sh backup_photos.sh import_photos.sh docker-compose.yml
-          ./digitaloceans/do -fn=firewallSSH -allow=false -ip=$public_ip_address
+          ./hetzner_home/hetzner -fn=cleanupDeploy -tag=homepage
 
           export SLACK_NOTIFY_TOKEN=$(echo ${{ secrets.ORG_SLACK_NOTIFICATIONS_TOKEN }} | base64 -d)
           curl -s -o /dev/null -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C092UE0H4 \
