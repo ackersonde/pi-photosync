@@ -157,10 +157,8 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "~/traefik/logs:/var/log/traefik/"
-      - "~/traefik/dump/certs/*.ackerson.de.crt:/certs/ackde.crt"
-      - "~/traefik/dump/private/*.ackerson.de.key:/keys/ackde.key"
-      - "~/traefik/dump/certs/hausmeisterservice-planb.de.crt:/certs/hausm.crt"
-      - "~/traefik/dump/private/hausmeisterservice-planb.de.key:/keys/hausm.key"
+      - "/etc/letsencrypt/live/ackerson.de/fullchain.pem:/certs/ackde.crt"
+      - "/etc/letsencrypt/live/ackerson.de/privkey.pem:/keys/ackde.key"
       - "~/traefik/dynamic_conf.yml:/dynamic_conf.yml"
       - "~/traefik/usersFile:/usersFile"
     command:
