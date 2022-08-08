@@ -89,6 +89,7 @@ services:
     volumes:
       - "~/Pictures:/photoprism/originals" # original media files (photos and videos)
       - "~/syncthing/Camera/Camera:/photoprism/import" # pics from Pixel6 device
+      - "~/syncthing/dannyIpad-photos:/photoprism/syncthing/dannyIpad-photos" # pics from iPad Air (iCloud)
       - "./storage:/photoprism/storage" # *writable* storage folder for cache, database, and sidecar files (never remove)
     labels:
       - "traefik.enable=true"

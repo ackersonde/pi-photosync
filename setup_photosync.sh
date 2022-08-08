@@ -11,7 +11,8 @@ $(echo $HTTP_USERSFILE_B64 | base64 -d)
 EOF
 
 # Setup Syncthing config
-mkdir -p /home/ubuntu/syncthing/config /home/ubuntu/syncthing/Camera
+mkdir -p /home/ubuntu/Pictures /home/ubuntu/syncthing/config /home/ubuntu/syncthing/Camera /home/ubuntu/syncthing/dannyIpad-photos
+ln -s /home/ubuntu/syncthing/dannyIpad-photos /home/ubuntu/Pictures/dannyIpad-photos
 chown -Rf ubuntu:ubuntu /home/ubuntu/syncthing
 echo ".trashed-*" > /home/ubuntu/syncthing/Camera/.stignore
 echo ".pending-*" >> /home/ubuntu/syncthing/Camera/.stignore
@@ -26,7 +27,6 @@ cat <<EOF > /home/ubuntu/syncthing/config/cert.pem
 $SYNCTHING_CERT
 EOF
 chmod 644 /home/ubuntu/syncthing/config/cert.pem
-#chown -R 1000:1000 /home/ubuntu/syncthing
 
 # prepare iptables persistence and unattended-upgrades install settings
 debconf-set-selections <<EOF
@@ -37,7 +37,6 @@ EOF
 
 iptables -D INPUT -s 192.168.178.0/24 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT || true
 iptables -A INPUT -s 192.168.178.0/24 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-#ip6tables -A INPUT -p tcp -s <Public DSL IPv6 Prefix>  --dport 22 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 # allow docker containers to talk to the internet
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
 ip6tables -D INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT || true
@@ -72,12 +71,6 @@ Unattended-Upgrade::Allowed-Origins {
     "\${distro_id} \${distro_codename}-security";
     "\${distro_id} \${distro_codename}-updates";
 };
-
-// Do automatic removal of new unused dependencies after the upgrade
-// (equivalent to apt-get autoremove)
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
-
-// Automatically reboot *WITHOUT CONFIRMATION* if
-// file /var/run/reboot-required is found after
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
