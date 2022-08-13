@@ -103,6 +103,7 @@ services:
   albumproxy:
     image: traefik/whoami
     container_name: albumproxy
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.public-album.entrypoints=web,secure"
